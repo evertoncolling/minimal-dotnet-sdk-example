@@ -44,6 +44,7 @@ namespace MinimalExample
                 }
             );
             var tsList = resTs.Items;
+            var tsExternalId = tsList.Last().ExternalId;
 
             /// fetch data points from the past 7 days from one of the time series listed above
             var resDps = await client.DataPoints.ListAsync(new DataPointsQuery
@@ -52,17 +53,28 @@ namespace MinimalExample
                 End = "now",
                 Items = new List<DataPointsQueryItem> {
                     new DataPointsQueryItem {
-                        ExternalId = tsList.Last().ExternalId,
+                        ExternalId = tsExternalId,
                         Aggregates = new List<string> { "average" },
-                        Granularity="1h",
+                        Granularity="1d",
                         Limit = 10_000
                     }
                 }
             });
             var ts = resDps.Items[0];
-            var dps = ts.AggregateDatapoints.Datapoints;
-
-            Console.WriteLine(dps);
+            
+            // get only the timestamp and the desired aggregate from the response
+            // convert the timestamp from ms since epoch to DateTime
+            var dps = ts.AggregateDatapoints.Datapoints.Select(
+                dp => new
+                {
+                    DateTimeOffset.FromUnixTimeMilliseconds(dp.Timestamp).DateTime,
+                    dp.Average
+                });
+            
+            // print each datapoint in a new line
+            Console.WriteLine($"Data fetched from time series {tsExternalId}:");
+            foreach (var dp in dps)
+                Console.WriteLine(dp);
         }
 
         static async Task Main(string[] args)
