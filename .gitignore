@@ -352,3 +352,7 @@ MigrationBackup/
 .env
 
 .vscode
+
+*.csv
+
+*idea
