@@ -1,21 +1,23 @@
-﻿using Microsoft.Identity.Client;
-using CogniteSdk;
+﻿using CogniteSdk;
 using dotenv.net;
+using Microsoft.Identity.Client;
 
-namespace MinimalExample
+namespace minimal_dotnet_sdk_example
 {
-    public class Program
+    public static class Program
     {
-        public static async Task FetchData()
+        private static async Task FetchData()
         {
-            /// read authentication variables from a .env file
+            // read authentication variables from a .env file
             DotEnv.Load();
-            var clientId = System.Environment.GetEnvironmentVariable("CLIENT_ID");
-            var tenantId = System.Environment.GetEnvironmentVariable("TENANT_ID");
-            var cluster = System.Environment.GetEnvironmentVariable("CDF_CLUSTER");
-            var project = System.Environment.GetEnvironmentVariable("CDF_PROJECT");
+            DotEnv.Load(options: new DotEnvOptions(envFilePaths: new[]
+                {"/Users/evertoncolling/Documents/GitHub/minimal-dotnet-sdk-example/.env"}));
+            var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+            var tenantId = Environment.GetEnvironmentVariable("TENANT_ID");
+            var cluster = Environment.GetEnvironmentVariable("CDF_CLUSTER");
+            var project = Environment.GetEnvironmentVariable("CDF_PROJECT");
 
-            /// fetch a valid token from the Azure Active directory
+            // fetch a valid token from the Azure Active directory
             var scopes = new List<string> {$"https://{cluster}.cognitedata.com/.default"};
             var app = PublicClientApplicationBuilder
                 .Create(clientId)
@@ -23,10 +25,10 @@ namespace MinimalExample
                 .WithRedirectUri("http://localhost")
                 .Build();
 
-            AuthenticationResult result = await app.AcquireTokenInteractive(scopes).ExecuteAsync();
-            string accessToken = result.AccessToken;
+            var result = await app.AcquireTokenInteractive(scopes).ExecuteAsync();
+            var accessToken = result?.AccessToken;
 
-            /// instantiate a Cognite SDK client
+            // instantiate a Cognite SDK client
             var httpClient = new HttpClient();
             var client = Client.Builder.Create(httpClient)
                 .SetAppId("testNotebook")
@@ -35,7 +37,7 @@ namespace MinimalExample
                 .SetBaseUrl(new Uri($"https://{cluster}.cognitedata.com"))
                 .Build();
 
-            /// find some time series with unit "barg" in the project we have authenticated to
+            // find some time series with unit "barg" in the project we have authenticated to
             var resTs = await client.TimeSeries.ListAsync(
                 new TimeSeriesQuery
                 {
@@ -60,7 +62,7 @@ namespace MinimalExample
                 );
             }
 
-            /// fetch data points from the past 7 days from one of the time series listed above
+            // fetch data points from the past 7 days from one of the time series listed above
             var resDps = await client.DataPoints.ListAsync(new DataPointsQuery
             {
                 Start = "7d-ago",
@@ -105,7 +107,7 @@ namespace MinimalExample
             }
         }
 
-        static async Task Main(string[] args)
+        private static async Task Main()
         {
             await FetchData();
         }
