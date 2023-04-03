@@ -16,7 +16,7 @@ namespace MinimalExample
             var project = System.Environment.GetEnvironmentVariable("CDF_PROJECT");
 
             /// fetch a valid token from the Azure Active directory
-            var scopes = new List<string> { $"https://{cluster}.cognitedata.com/.default" };
+            var scopes = new List<string> {$"https://{cluster}.cognitedata.com/.default"};
             var app = PublicClientApplicationBuilder
                 .Create(clientId)
                 .WithAuthority(AzureCloudInstance.AzurePublic, tenantId)
@@ -39,7 +39,7 @@ namespace MinimalExample
             var resTs = await client.TimeSeries.ListAsync(
                 new TimeSeriesQuery
                 {
-                    Filter = new TimeSeriesFilter { Unit = "barg" },
+                    Filter = new TimeSeriesFilter {Unit = "barg"},
                     Limit = 2
                 }
             );
@@ -49,7 +49,7 @@ namespace MinimalExample
             // check the timestamp for the latest datapoint for the selected time series
             var resLatestDps = await client.DataPoints.LatestAsync(new DataPointsLatestQuery
             {
-                Items = new List<IdentityWithBefore> { new IdentityWithBefore(tsExternalId, "now")}
+                Items = new List<IdentityWithBefore> {new IdentityWithBefore(externalId: tsExternalId, before: "now")}
             });
             var latestTimeStamp = resLatestDps.First().DataPoints?.First().Timestamp;
             if (latestTimeStamp != null)
@@ -57,7 +57,7 @@ namespace MinimalExample
                 var latestTimeStampString = DateTimeOffset.FromUnixTimeMilliseconds(latestTimeStamp.Value).DateTime;
                 Console.WriteLine(
                     $"Latest data point found at {latestTimeStampString} for time series {tsExternalId}\n"
-                    );
+                );
             }
 
             /// fetch data points from the past 7 days from one of the time series listed above
@@ -65,17 +65,19 @@ namespace MinimalExample
             {
                 Start = "7d-ago",
                 End = "now",
-                Items = new List<DataPointsQueryItem> {
-                    new DataPointsQueryItem {
+                Items = new List<DataPointsQueryItem>
+                {
+                    new DataPointsQueryItem
+                    {
                         ExternalId = tsExternalId,
-                        Aggregates = new List<string> { "average" },
+                        Aggregates = new List<string> {"average"},
                         Granularity = "1d",
                         Limit = 10_000
                     }
                 }
             });
             var ts = resDps.Items[0];
-            
+
             // get only the timestamp and the desired aggregate from the response
             // convert the timestamp from ms since epoch to DateTime
             var dps = ts.AggregateDatapoints?.Datapoints?.Select(
@@ -88,12 +90,12 @@ namespace MinimalExample
             {
                 throw new Exception("No data points were located in the selected time window.");
             }
-            
+
             // print each datapoint in a new line
             Console.WriteLine($"Data fetched from time series {tsExternalId}:");
             foreach (var dp in dps)
                 Console.WriteLine(dp);
-            
+
             // save the data points to a csv
             using (var writer = new StreamWriter("output.csv"))
             {
@@ -107,6 +109,5 @@ namespace MinimalExample
         {
             await FetchData();
         }
-
     }
 }
