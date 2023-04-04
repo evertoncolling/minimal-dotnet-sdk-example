@@ -10,8 +10,6 @@ namespace minimal_dotnet_sdk_example
         {
             // read authentication variables from a .env file
             DotEnv.Load();
-            DotEnv.Load(options: new DotEnvOptions(envFilePaths: new[]
-                {"/Users/evertoncolling/Documents/GitHub/minimal-dotnet-sdk-example/.env"}));
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
             var tenantId = Environment.GetEnvironmentVariable("TENANT_ID");
             var cluster = Environment.GetEnvironmentVariable("CDF_CLUSTER");
